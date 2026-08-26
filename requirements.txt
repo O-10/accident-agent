@@ -1,0 +1,8 @@
+streamlit
+google-adk
+pdfplumber
+openpyxl
+Pillow
+bcrypt
+pyjwt
+requests
