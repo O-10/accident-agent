@@ -1,4 +1,5 @@
 import os
+import tempfile
 
 try:
     import streamlit as st
@@ -33,4 +34,4 @@ ADMIN_EMAIL = _get("ADMIN_EMAIL", "admin@accidentes.com")
 ADMIN_PASSWORD = _get("ADMIN_PASSWORD", "Admin123456")
 ADMIN_NAME = _get("ADMIN_NAME", "Administrador")
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "usuarios.db")
+DB_PATH = os.path.join(tempfile.gettempdir(), "usuarios.db")

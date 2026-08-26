@@ -2,22 +2,8 @@ import streamlit as st
 import os
 import sys
 import tempfile
-from dotenv import load_dotenv
 
-load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
-load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
-
-env_path = os.path.join(os.path.dirname(__file__), ".env")
-if os.path.exists(env_path):
-    with open(env_path) as f:
-        for line in f:
-            line = line.strip()
-            if line and "=" in line and not line.startswith("#"):
-                key, value = line.split("=", 1)
-                if key.strip() not in os.environ:
-                    os.environ[key.strip()] = value.strip()
-
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from config import GROQ_API_KEY, FREE_PLAN_LIMIT, PREMIUM_PLAN_PRICE
 from auth import registrar, login, get_current_user
@@ -47,7 +33,7 @@ def get_groq_client():
 def chat_with_agent(messages, file_content=""):
     client = get_groq_client()
     if not client:
-        return "Error: No hay API key de Groq configurada. Agrega GROQ_API_KEY al archivo .env"
+        return "Error: No hay API key de Groq configurada."
 
     system_prompt = """Eres un experto en investigacion de accidentes de trabajo (Colombia, Resolucion 1401/2007).
 
@@ -92,8 +78,6 @@ def init_session():
         st.session_state.token = None
     if "messages" not in st.session_state:
         st.session_state.messages = []
-    if "page" not in st.session_state:
-        st.session_state.page = "login"
 
 
 def handle_payment():
@@ -189,7 +173,7 @@ def show_chat():
             st.markdown("Investigaciones: **Ilimitadas**")
 
         st.markdown("---")
-        st.markdown("Powered by **Groq + Llama 3.1** (gratis)")
+        st.markdown("Powered by **Groq + Qwen 3.8** (gratis)")
 
         if st.button("Cerrar Sesion"):
             st.session_state.token = None
@@ -243,13 +227,13 @@ def show_chat():
                 os.unlink(tmp_path)
 
         with st.chat_message("assistant"):
-            with st.spinner("Analizando accidente con Llama 3.1..."):
+            with st.spinner("Analizando accidente con Qwen 3.8..."):
                 response_text = chat_with_agent(st.session_state.messages, file_content)
 
                 if response_text:
                     st.markdown(response_text)
                 else:
-                    st.markdown("El agente proceso tu solicitud. Intenta de nuevo si no ves respuesta.")
+                    st.markdown("El agente proceso tu solicitud. Intenta de nuevo.")
 
         if response_text:
             st.session_state.messages.append({"role": "assistant", "content": response_text})
