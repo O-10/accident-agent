@@ -1,1 +1,1 @@
-from agent import root_agent
+# Agente principal - no importar automaticamente
