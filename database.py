@@ -56,6 +56,7 @@ def init_db():
 
 
 def crear_usuario(email, password_hash, nombre):
+    ensure_db()
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -73,6 +74,7 @@ def crear_usuario(email, password_hash, nombre):
 
 
 def obtener_usuario_por_email(email):
+    ensure_db()
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM usuarios WHERE email = ?", (email,))
@@ -82,6 +84,7 @@ def obtener_usuario_por_email(email):
 
 
 def obtener_usuario_por_id(usuario_id):
+    ensure_db()
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM usuarios WHERE id = ?", (usuario_id,))
@@ -123,6 +126,7 @@ def actualizar_plan(usuario_id, plan):
 
 
 def guardar_investigacion(usuario_id, titulo, contenido, diagnostico):
+    ensure_db()
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
@@ -136,6 +140,7 @@ def guardar_investigacion(usuario_id, titulo, contenido, diagnostico):
 
 
 def obtener_historial(usuario_id):
+    ensure_db()
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
@@ -173,22 +178,34 @@ def crear_usuario_admin():
     from config import ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME
     import bcrypt
 
-    usuario = obtener_usuario_por_email(ADMIN_EMAIL)
-    if usuario:
-        return usuario["id"]
+    try:
+        usuario = obtener_usuario_por_email(ADMIN_EMAIL)
+        if usuario:
+            return usuario["id"]
 
-    password_hash = bcrypt.hashpw(ADMIN_PASSWORD.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT OR IGNORE INTO usuarios (email, password_hash, nombre, plan) VALUES (?, ?, ?, 'premium')",
-        (ADMIN_EMAIL, password_hash, ADMIN_NAME),
-    )
-    conn.commit()
-    admin_id = cursor.lastrowid
-    conn.close()
-    return admin_id
+        password_hash = bcrypt.hashpw(ADMIN_PASSWORD.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT OR IGNORE INTO usuarios (email, password_hash, nombre, plan) VALUES (?, ?, ?, 'premium')",
+            (ADMIN_EMAIL, password_hash, ADMIN_NAME),
+        )
+        conn.commit()
+        admin_id = cursor.lastrowid
+        conn.close()
+        return admin_id
+    except Exception:
+        return None
 
 
-init_db()
-crear_usuario_admin()
+_db_initialized = False
+
+def ensure_db():
+    global _db_initialized
+    if not _db_initialized:
+        try:
+            init_db()
+            crear_usuario_admin()
+            _db_initialized = True
+        except Exception:
+            pass
