@@ -7,3 +7,5 @@ pyjwt
 requests
 groq
 python-dotenv
+google-adk[extensions]
+litellm

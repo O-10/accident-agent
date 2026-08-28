@@ -15,6 +15,15 @@ from database import (
 )
 from payments import crear_suscripcion_paypal, confirmar_pago
 
+# El agente ADK completo (Runner + sesiones + herramientas + callbacks) se usa
+# cuando esta disponible; de lo contrario se recurre al chat directo con Groq.
+ADK_AVAILABLE = False
+try:
+    from runner_adk import run_adk_agent
+    ADK_AVAILABLE = True
+except Exception:
+    run_adk_agent = None
+
 st.set_page_config(
     page_title="Agente Investigacion de Accidentes",
     page_icon=":shield:",
@@ -173,7 +182,8 @@ def show_chat():
             st.markdown("Investigaciones: **Ilimitadas**")
 
         st.markdown("---")
-        st.markdown("Powered by **Groq + Qwen 3.8** (gratis)")
+        motor = "ADK + Groq" if ADK_AVAILABLE else "Groq directo"
+        st.markdown(f"Motor: **{motor}**")
 
         if st.button("Cerrar Sesion"):
             st.session_state.token = None
@@ -227,8 +237,18 @@ def show_chat():
                 os.unlink(tmp_path)
 
         with st.chat_message("assistant"):
-            with st.spinner("Analizando accidente con Qwen 3.8..."):
-                response_text = chat_with_agent(st.session_state.messages, file_content)
+            with st.spinner("Analizando accidente con el agente ADK..."):
+                if ADK_AVAILABLE:
+                    session_id = f"user_{user['id']}"
+                    response_text = run_adk_agent(
+                        st.session_state.messages,
+                        file_content,
+                        session_id=session_id,
+                    )
+                else:
+                    response_text = chat_with_agent(
+                        st.session_state.messages, file_content
+                    )
 
                 if response_text:
                     st.markdown(response_text)
