@@ -1,4 +1,4 @@
-streamlit
+streamlit==1.62.0
 pdfplumber
 openpyxl
 Pillow
@@ -7,5 +7,5 @@ pyjwt
 requests
 groq
 python-dotenv
-google-adk[extensions]
+google-adk[extensions]==2.7.1
 litellm
